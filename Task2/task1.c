@@ -13,3 +13,4 @@ ppid = getppid();
 printf("My pid = %d, my ppid = %d, result = %d\n", (int)pid, (int)ppid, a);
 return 0;
 }
+
