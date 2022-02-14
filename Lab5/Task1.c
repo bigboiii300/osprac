@@ -10,7 +10,6 @@ size_t size;
 char str[14];
 
 (void)umask(0);
-
 if((fd = open("myfile", O_RDONLY)) < 0){
 	printf("Can't open file!");
 	exit(-1);
