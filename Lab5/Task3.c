@@ -1,31 +1,36 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
-
-int main(){
-int fd[2];
-size_t size = 1;
-char* byte = malloc(sizeof(char));
+int main() {
+int file[2];
+int full = 0;
 int result = 0;
-
-if(pipe(fd) < 0){
-	printf("Can't create pipe!");
-	exit(-1);
+if (pipe2(file, O_NONBLOCK) < 0) {
+printf("ERROR: Cannot open pipe\n");
+exit(-1);
 }
 
-fcntl(fd[1], F_SETFL, fcntl(fd[1], F_GETFL) | O_NONBLOCK);
-
-while(size == 1){
-	size = write(fd[1], byte, 1);
-	result++;
+while (!full) {
+if (write(file[1], "p", 1) > 0) {
+result++;
+} else {
+full = 1;
+}
 }
 
-printf("Size of buffer = %d bytes\n", result);
+printf("answer: %d\n", result);
+if (close(file[0]) < 0) {
+printf("error: Cannot close reading side of pipe\n");
+exit(-1);
+}
+if (close(file[1]) < 0) {
+printf("error: Cannot close writing side of pipe\n");
+exit(-1);
+}
 
-free(byte);
 return 0;
 }
