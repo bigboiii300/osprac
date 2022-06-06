@@ -6,41 +6,51 @@
 #include <errno.h>
 #include <stdlib.h>
 
-int sign;
-int pid;
+int success = 0;
 
-int i = 31;
-int res = 0;
+int pid;
+int num;
+int bits[32];
+int sign;
 
 void my_handler(int nsig) {
-  if (i == 31)
-    sign = nsig == 12;
-  else {
-    res = res << 1;
-    if ((nsig == 12) ^ sign) {
-      res++;
-    }
-  }
-  i--;
-  kill(pid, SIGUSR1);
+  success = 1;
 }
 
 int main() {
+  (void) signal(SIGUSR1, my_handler);
+
   printf("My pid: %d \n", getpid());
   printf("Enter pid: ");
   scanf("%d", &pid);
 
-  (void) signal(SIGUSR1, my_handler);
-  (void) signal(SIGUSR2, my_handler);
-  kill(pid, SIGUSR1);
+  printf("Enter number: ");
+  scanf("%d", &num);
 
-  while(i >= 0);
+  while (!success);
 
+  sign = num < 0;
   if (sign) {
-    res += 1;
-    res *= -1;
+    num = num * (-1);
+    num--;
+  }
+  bits[0] = sign;
+
+  for (int i = 0; i < 31; ++i) {
+    bits[31 - i] = (num % 2) ^ sign;
+    num /= 2;
   }
 
-  printf("Result: %d \n", res);
+  for (int i = 0; i < 32; ++i) {
+    if (bits[i]) {
+      kill(pid, SIGUSR2);
+    } else {
+      kill(pid, SIGUSR1);
+    }
+    success = 0;
+    while(!success);
+  }
+
+  printf("Sent the number \n");
   return 0;
 }
